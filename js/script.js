@@ -374,3 +374,108 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = mailto;
   });
 });
+
+// Yami, the portfolio assistant
+(() => {
+  const root = document.getElementById('yamiAssistant');
+  if (!root) return;
+  const launcher = document.getElementById('yamiLauncher');
+  const bubble = document.getElementById('yamiBubble');
+  const close = document.getElementById('yamiClose');
+  const roamer = document.getElementById('yamiRoamer');
+
+  // Yami follows the mouse, runs while it moves, then idles and waves when it stops.
+  if (roamer) {
+    const sprite = roamer.querySelector('.yami-roamer-sprite');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finePointer = window.matchMedia('(pointer: fine)').matches;
+    let stopTimer = null;
+    let waveTimer = null;
+    let lastX = window.innerWidth * 0.12;
+    let lastY = window.innerHeight * 0.38;
+    let pointerSeen = false;
+
+    const setSpriteState = (state) => {
+      if (!sprite) return;
+      sprite.classList.remove('is-running', 'is-idle', 'is-waving');
+      sprite.classList.add(`is-${state}`);
+    };
+
+    // Start in idle. On reduced-motion/touch devices, keep Yami stationary and usable.
+    setSpriteState('idle');
+    if (finePointer && !reduceMotion) {
+      roamer.style.left = `${Math.max(12, lastX)}px`;
+      roamer.style.top = `${Math.max(90, lastY)}px`;
+
+      document.addEventListener('pointermove', (event) => {
+        if (event.pointerType === 'touch') return;
+        pointerSeen = true;
+        if (stopTimer) window.clearTimeout(stopTimer);
+        if (waveTimer) window.clearTimeout(waveTimer);
+
+        const rect = roamer.getBoundingClientRect();
+        // Stay a little above and to the side of the pointer, without sitting directly on it.
+        const maxX = Math.max(8, window.innerWidth - rect.width - 8);
+        const maxY = Math.max(80, window.innerHeight - rect.height - 8);
+        const targetX = Math.min(maxX, Math.max(8, event.clientX - rect.width * 0.58));
+        const targetY = Math.min(maxY, Math.max(80, event.clientY - rect.height * 0.78));
+        roamer.classList.toggle('is-facing-left', targetX < lastX);
+        lastX = targetX;
+        lastY = targetY;
+        roamer.style.left = `${targetX}px`;
+        roamer.style.top = `${targetY}px`;
+        setSpriteState('running');
+
+        stopTimer = window.setTimeout(() => {
+          setSpriteState('idle');
+          // A short friendly wave after Yami comes to a stop.
+          waveTimer = window.setTimeout(() => setSpriteState('waving'), 180);
+          window.setTimeout(() => {
+            if (sprite && sprite.classList.contains('is-waving')) setSpriteState('idle');
+          }, 1450);
+        }, 240);
+      }, { passive: true });
+    }
+
+    roamer.addEventListener('click', () => setOpen(bubble.hidden));
+    window.addEventListener('resize', () => {
+      const maxX = Math.max(8, window.innerWidth - roamer.offsetWidth - 8);
+      const maxY = Math.max(80, window.innerHeight - roamer.offsetHeight - 8);
+      const x = Math.min(maxX, Math.max(8, parseFloat(roamer.style.left || '40')));
+      const y = Math.min(maxY, Math.max(80, parseFloat(roamer.style.top || '120')));
+      roamer.style.left = `${x}px`;
+      roamer.style.top = `${y}px`;
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (stopTimer) window.clearTimeout(stopTimer);
+        if (waveTimer) window.clearTimeout(waveTimer);
+        setSpriteState('idle');
+      }
+    });
+  }
+  const setOpen = (open) => {
+    bubble.hidden = !open;
+    if (launcher) launcher.setAttribute('aria-expanded', String(open));
+    if (roamer) roamer.setAttribute('aria-expanded', String(open));
+  };
+  // Do not open automatically. The panel opens only when the roaming Yami is clicked.
+  if (launcher) launcher.addEventListener('click', () => setOpen(bubble.hidden));
+  if (close) close.addEventListener('click', () => setOpen(false));
+  root.querySelectorAll('[data-yami-action]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const action = button.dataset.yamiAction;
+      const target = action === 'projects'
+        ? document.querySelector('#projects, [data-section="projects"], a[href="#projects"]')
+        : document.querySelector('#contact, [data-section="contact"], a[href="#contact"]');
+      if (target) {
+        if (target.matches('a')) target.click();
+        else target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setOpen(false);
+      } else {
+        const message = action === 'projects' ? 'Look for the Projects section in the navigation!' : 'Use the Contact section to reach Kinson.';
+        bubble.querySelector('p').textContent = message;
+      }
+    });
+  });
+})();

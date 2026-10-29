@@ -118,3 +118,12 @@ To test it, open the site on desktop and move the pointer in short and long stro
 The portfolio includes a lightweight vanilla JavaScript adaptation of the React Bits Pro Text Scatter interaction. Hover over the hero title, section headings, skill names, project titles, and journey headings on a desktop pointer: letters burst outward in the site's gold-accent style and then settle back into place. The effect respects reduced-motion settings and is disabled on touch-first devices.
 
 This existing website is plain HTML, CSS, and vanilla JavaScript, so the original React/Tailwind registry component was not installed with shadcn. The adapted effect keeps the current stack and does not require a React Bits license key or a build step. If you later migrate the site to React and want the official registry component, follow https://pro.reactbits.dev/docs/installation and https://pro.reactbits.dev/docs/components/text-scatter. Keep `REACTBITS_LICENSE_KEY` in a local `.env.local` file and never commit it.
+
+
+## Yami Portfolio Assistant
+
+Yami is a small animated pixel-art assistant fixed to the bottom-right of the page. Visitors can open his welcome bubble and jump to the Projects or Contact sections. The sprite sheets are stored locally in `images/yami-sprites-*.png`; no external library or API is required.
+
+### Yami sprite atlas fix
+
+Yami now uses two normalized transparent five-frame strips (`images/yami-idle-strip.png` and `images/yami-run-strip.png`) derived from the supplied sprite sheets. This prevents the full 5×5 atlas from being scaled as a single background and improves frame alignment for idle and roaming animations. The original sprite sheets are retained.

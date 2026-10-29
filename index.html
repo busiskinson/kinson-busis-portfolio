@@ -44,12 +44,11 @@
             <a class="button button-outline" href="#contact">Contact me <span aria-hidden="true">→</span></a>
           </div>
           <div class="hero-socials">
-            <span class="social-label">https://github.com/busiskinson-maker</span>
+            <span class="social-label">FIND ME ON</span>
             <a href="https://github.com/" target="_blank" rel="noreferrer" aria-label="GitHub placeholder">GitHub ↗</a>
             <span class="social-divider"></span>
             <a href="#contact">Email ↗</a>
-            <span class="placeholder-note">kinsonbusis@gmail.com
-            </span>
+            <span class="placeholder-note">Replace social links with your profiles</span>
           </div>
         </div>
         <div class="hero-art profile-art reveal" aria-label="Portrait of Kinson Busis">
@@ -186,5 +185,36 @@
     <div class="container footer-bottom"><span>© <span id="current-year">2026</span> Kinson Busis. All rights reserved.</span><span>BUILT WITH <b>HTML</b> · <b>CSS</b> · <b>JAVASCRIPT</b></span></div>
   </footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Yami roaming pixel companion -->
+  <button class="yami-roamer" id="yamiRoamer" type="button" aria-label="Yami is roaming around. Click to talk to Yami" aria-expanded="false">
+    <span class="yami-roamer-sprite" aria-hidden="true"></span>
+    <span class="yami-roamer-hint">Yami</span>
+  </button>
+
+  <!-- Yami: floating portfolio guide, inspired by the reference assistant layout -->
+  <div class="yami-assistant" id="yamiAssistant" aria-label="Yami portfolio assistant">
+    <section class="yami-bubble" id="yamiBubble" aria-label="Kinson's portfolio highlights" hidden>
+      <div class="yami-panel-heading">
+        <div><span class="yami-kicker">KINSON BUSIS · PORTFOLIO GUIDE</span><strong>Official highlights</strong></div>
+        <span class="yami-live"><i></i> ONLINE</span>
+        <button class="yami-close" id="yamiClose" aria-label="Close Yami panel">×</button>
+      </div>
+      <div class="yami-panel-body">
+        <div class="yami-welcome"><span class="yami-mini-mark">K.</span><div><b>Hey, I'm Yami!</b><p>I'll help you explore Kinson's work, skills, and journey.</p></div></div>
+        <div class="yami-feed-label">FEATURED PROJECTS <span>03</span></div>
+        <button class="yami-feature" type="button" data-yami-action="projects"><span class="yami-feature-icon">01</span><span><b>BISU Candijay Feedback System</b><small>Flutter · Dart · Firebase</small></span><span class="yami-arrow">↗</span></button>
+        <button class="yami-feature" type="button" data-yami-action="projects"><span class="yami-feature-icon">02</span><span><b>American Roadhouse Website</b><small>Responsive business website</small></span><span class="yami-arrow">↗</span></button>
+        <button class="yami-feature" type="button" data-yami-action="projects"><span class="yami-feature-icon">03</span><span><b>Gender-Neutral Language Recognizer</b><small>Python · Desktop GUI</small></span><span class="yami-arrow">↗</span></button>
+        <div class="yami-panel-footer"><span>Curious about a project?</span><button type="button" data-yami-action="contact">Talk to Kinson <b>→</b></button></div>
+      </div>
+    </section>
+    <button class="yami-launcher" id="yamiLauncher" aria-label="Chat with Yami" aria-expanded="false">
+      <span class="yami-sprite" aria-hidden="true"></span>
+      <span class="yami-label">Meet <b>Yami</b><small>Portfolio assistant</small></span>
+      <span class="yami-launch-arrow">↗</span>
+    </button>
+  </div>
+
 </body>
 </html>
