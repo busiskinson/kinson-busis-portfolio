@@ -175,6 +175,13 @@ document.addEventListener("DOMContentLoaded", () => {
       lastArcPoint = { x, y };
     }
 
+    // Shared with Yami: draws the same crackling arcs between two points.
+    window.yamiArc = (x1, y1, x2, y2) => {
+      makeArc(x1, y1, x2, y2, 0.9, 1.05);
+      if (Math.random() > 0.7) makeArc(x2, y2, x2 + (Math.random() - 0.5) * 12, y2 + (Math.random() - 0.5) * 12, 0.75, 0.75);
+      if (!arcFrame) arcFrame = requestAnimationFrame(drawArcs);
+    };
+
     resizeArcCanvas();
     window.addEventListener("resize", resizeArcCanvas, { passive: true });
 
@@ -396,10 +403,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let targetY = y;
     let raf = 0;
     let facingLeft = false;
+    let arcPrev = null;
 
     const setSpriteState = (next) => {
       if (!sprite || state === next) return;
       state = next;
+      arcPrev = null;
       sprite.classList.remove('is-running', 'is-idle');
       sprite.classList.add(`is-${next}`);
     };
@@ -442,6 +451,16 @@ document.addEventListener("DOMContentLoaded", () => {
         x += (dx / dist) * step;
         y += (dy / dist) * step;
         place();
+        // Same lightning the cursor leaves, trailing from Yami while he runs.
+        if (window.yamiArc) {
+          const ax = x + roamer.offsetWidth * 0.5;
+          const ay = y + roamer.offsetHeight * 0.6;
+          if (!arcPrev) arcPrev = { x: ax, y: ay };
+          else if (Math.hypot(ax - arcPrev.x, ay - arcPrev.y) > 7) {
+            window.yamiArc(arcPrev.x, arcPrev.y, ax, ay);
+            arcPrev = { x: ax, y: ay };
+          }
+        }
         const left = dx < 0;
         if (Math.abs(dx) > 4 && left !== facingLeft) {
           facingLeft = left;
@@ -462,7 +481,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const wander = () => {
-      if (document.hidden || !bubble.hidden) {
+      if (document.hidden || !bubble.hidden || drag) {
         // Hold still while the panel is open or the tab is hidden; check again shortly.
         nextTimer = window.setTimeout(wander, 1500);
         return;
@@ -481,7 +500,58 @@ document.addEventListener("DOMContentLoaded", () => {
     place();
     if (!reduceMotion) nextTimer = window.setTimeout(wander, 1200);
 
-    roamer.addEventListener('click', () => setOpen(bubble.hidden));
+    // Grab and drag Yami anywhere; roaming resumes from the drop spot.
+    let drag = null;
+    let suppressClick = false;
+    roamer.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      drag = { id: event.pointerId, sx: event.clientX, sy: event.clientY, ox: event.clientX - x, oy: event.clientY - y, moved: false };
+      roamer.setPointerCapture(event.pointerId);
+    });
+    roamer.addEventListener('pointermove', (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      if (!drag.moved) {
+        if (Math.hypot(event.clientX - drag.sx, event.clientY - drag.sy) < 5) return;
+        drag.moved = true;
+        clearTimers();
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        roamer.classList.add('is-grabbed');
+        setSpriteState('idle');
+      }
+      const b = bounds();
+      const nx = Math.min(b.maxX, Math.max(b.minX, event.clientX - drag.ox));
+      const ny = Math.min(b.maxY, Math.max(b.minY, event.clientY - drag.oy));
+      if (Math.abs(nx - x) > 2) {
+        const left = nx < x;
+        if (left !== facingLeft) {
+          facingLeft = left;
+          roamer.classList.toggle('is-facing-left', left);
+        }
+      }
+      x = targetX = nx;
+      y = targetY = ny;
+      place();
+    });
+    const endDrag = (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const moved = drag.moved;
+      drag = null;
+      roamer.classList.remove('is-grabbed');
+      if (roamer.hasPointerCapture(event.pointerId)) roamer.releasePointerCapture(event.pointerId);
+      if (moved) {
+        suppressClick = true;
+        window.setTimeout(() => { suppressClick = false; }, 0);
+        clearTimers();
+        if (!reduceMotion) nextTimer = window.setTimeout(wander, 400);
+      }
+    };
+    roamer.addEventListener('pointerup', endDrag);
+    roamer.addEventListener('pointercancel', endDrag);
+    roamer.addEventListener('click', () => {
+      if (suppressClick) return;
+      setOpen(bubble.hidden);
+    });
     window.addEventListener('resize', () => {
       const b = bounds();
       x = targetX = Math.min(b.maxX, Math.max(b.minX, x));
