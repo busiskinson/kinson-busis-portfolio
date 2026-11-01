@@ -301,7 +301,7 @@ main section h2:hover .text-scatter-letter,
 .yami-assistant button{font:inherit;cursor:pointer}
 .yami-launcher{display:none!important;pointer-events:auto;position:relative;display:flex;align-items:center;gap:10px;min-height:68px;border:1px solid rgba(212,175,55,.62);border-radius:18px;padding:4px 14px 4px 5px;background:rgba(12,12,12,.95);color:#f7f0d4;box-shadow:0 8px 30px #0008,0 0 22px #d4af371c;backdrop-filter:blur(12px);transition:transform .25s,border-color .25s,box-shadow .25s}
 .yami-launcher:hover{transform:translateY(-3px);border-color:#f5d76e;box-shadow:0 10px 32px #0009,0 0 24px #d4af3740}
-.yami-sprite{display:block;width:76px;height:76px;flex:0 0 76px;background-image:url('../images/yami-idle-strip.png');background-repeat:no-repeat;background-size:500% 100%;background-position:0 0;image-rendering:pixelated;animation:yami-idle .95s steps(5) infinite;filter:drop-shadow(0 3px 5px #0008)}
+.yami-sprite{display:block;width:76px;height:76px;flex:0 0 76px;background-image:url('../images/yami-idle.png');background-repeat:no-repeat;background-size:2500% 100%;background-position:0 0;image-rendering:pixelated;animation:yami-idle 2.5s steps(25,jump-none) infinite;filter:drop-shadow(0 3px 5px #0008)}
 @keyframes yami-idle{from{background-position:0 0}to{background-position:100% 0}}
 .yami-label{display:flex;flex-direction:column;gap:3px;text-align:left;font-size:13px;letter-spacing:.02em;color:#e6dec6}.yami-label b{color:#e5c65b;font-size:15px}.yami-label small{font-size:10px;color:#aaa18a}.yami-launch-arrow{font-size:17px;color:#e5c65b;margin-left:4px}
 .yami-bubble{pointer-events:auto;width:min(440px,calc(100vw - 30px));padding:0;border:1px solid #d4af374d;border-radius:19px;overflow:hidden;background:#11110f;color:#f4f0e5;box-shadow:0 22px 70px #000b,0 0 35px #d4af3714;transform-origin:bottom right;animation:yami-pop .32s cubic-bezier(.2,.8,.2,1) both}
@@ -315,15 +315,14 @@ main section h2:hover .text-scatter-letter,
 @media(prefers-reduced-motion:reduce){.yami-sprite{animation:none}.yami-bubble{animation:none}.yami-launcher{transition:none}}
 
 /* Yami roaming companion: travels gently around the viewport */
-.yami-roamer{position:fixed;left:8vw;top:38vh;z-index:998;width:88px;height:104px;padding:0;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;pointer-events:auto;transition:left .32s ease-out,top .32s ease-out;filter:drop-shadow(0 5px 7px #0008);will-change:left,top}
-.yami-roamer-sprite{display:block;width:82px;height:82px;background-image:url('../images/yami-sprites-2.png');background-repeat:no-repeat;background-size:500% 500%;background-position:0% 0%;image-rendering:pixelated;transform-origin:center bottom;}
-.yami-roamer-sprite.is-idle{background-image:url('../images/yami-sprites-2.png');background-position-y:0%;animation:yami-sheet-frames .9s steps(5) infinite}
-.yami-roamer-sprite.is-running{background-image:url('../images/yami-sprites-1.png');background-position-y:0%;animation:yami-sheet-frames .48s steps(5) infinite}
-.yami-roamer-sprite.is-waving{background-image:url('../images/yami-sprites-3.png');background-position-y:25%;animation:yami-sheet-frames .62s steps(5) infinite}
+.yami-roamer{position:fixed;left:0;top:0;z-index:998;width:88px;height:88px;padding:0;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;pointer-events:auto;filter:drop-shadow(0 5px 7px #0008);will-change:transform;transform:translate3d(0,0,0)}
+.yami-roamer-sprite{display:block;width:88px;height:88px;background-repeat:no-repeat;background-position:0 0;image-rendering:pixelated;transform-origin:center bottom}
+.yami-roamer-sprite.is-idle{background-image:url('../images/yami-idle.png');background-size:2500% 100%;animation:yami-frames 2.5s steps(25,jump-none) infinite}
+.yami-roamer-sprite.is-running{background-image:url('../images/yami-run.png');background-size:2500% 100%;animation:yami-frames 1.2s steps(25,jump-none) infinite}
 .yami-roamer-hint{font-size:10px;font-weight:800;letter-spacing:.08em;color:#f1d05d;background:rgba(10,10,10,.88);border:1px solid #d4af3755;border-radius:999px;padding:3px 8px;margin-top:-2px;opacity:0;transform:translateY(3px);transition:opacity .2s,transform .2s}
 .yami-roamer:hover .yami-roamer-hint,.yami-roamer:focus-visible .yami-roamer-hint{opacity:1;transform:translateY(0)}
 .yami-roamer:focus-visible{outline:1px solid #f5d76e;outline-offset:4px;border-radius:12px}
-@keyframes yami-sheet-frames{from{background-position-x:0%}to{background-position-x:100%}}
+@keyframes yami-frames{from{background-position-x:0%}to{background-position-x:100%}}
 .yami-roamer.is-facing-left .yami-roamer-sprite{transform:scaleX(-1)}
-@media(max-width:520px){.yami-roamer{width:68px;height:82px}.yami-roamer-sprite{width:64px;height:64px}}
-@media(prefers-reduced-motion:reduce){.yami-roamer{transition:none!important}.yami-roamer-sprite{animation:none!important}}
+@media(max-width:520px){.yami-roamer{width:68px;height:68px}.yami-roamer-sprite{width:68px;height:68px}}
+@media(prefers-reduced-motion:reduce){.yami-roamer-sprite{animation:none!important}}

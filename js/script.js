@@ -384,73 +384,117 @@ document.addEventListener("DOMContentLoaded", () => {
   const close = document.getElementById('yamiClose');
   const roamer = document.getElementById('yamiRoamer');
 
-  // Yami follows the mouse, runs while it moves, then idles and waves when it stops.
+  // Yami roams on its own: picks a spot, runs there, idles, then wanders off again.
   if (roamer) {
     const sprite = roamer.querySelector('.yami-roamer-sprite');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const finePointer = window.matchMedia('(pointer: fine)').matches;
-    let stopTimer = null;
-    let waveTimer = null;
-    let lastX = window.innerWidth * 0.12;
-    let lastY = window.innerHeight * 0.38;
-    let pointerSeen = false;
+    let nextTimer = null;
+    let state = '';
+    let x = window.innerWidth * 0.12;
+    let y = window.innerHeight * 0.38;
+    let targetX = x;
+    let targetY = y;
+    let raf = 0;
+    let facingLeft = false;
 
-    const setSpriteState = (state) => {
-      if (!sprite) return;
-      sprite.classList.remove('is-running', 'is-idle', 'is-waving');
-      sprite.classList.add(`is-${state}`);
+    const setSpriteState = (next) => {
+      if (!sprite || state === next) return;
+      state = next;
+      sprite.classList.remove('is-running', 'is-idle');
+      sprite.classList.add(`is-${next}`);
+    };
+    const bounds = () => ({
+      minX: 8,
+      maxX: Math.max(8, window.innerWidth - roamer.offsetWidth - 8),
+      minY: 80,
+      maxY: Math.max(80, window.innerHeight - roamer.offsetHeight - 8),
+    });
+    const place = () => {
+      roamer.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+    };
+    const clearTimers = () => {
+      window.clearTimeout(nextTimer);
     };
 
-    // Start in idle. On reduced-motion/touch devices, keep Yami stationary and usable.
+    const pickTarget = () => {
+      const b = bounds();
+      // Wander a moderate distance so each trip reads as a walk, not a teleport.
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 160 + Math.random() * 280;
+      targetX = Math.min(b.maxX, Math.max(b.minX, x + Math.cos(angle) * dist));
+      targetY = Math.min(b.maxY, Math.max(b.minY, y + Math.sin(angle) * dist * 0.7));
+      if (Math.hypot(targetX - x, targetY - y) < 80) {
+        targetX = b.minX + Math.random() * (b.maxX - b.minX);
+        targetY = b.minY + Math.random() * (b.maxY - b.minY);
+      }
+    };
+
+    const SPEED = 2.2; // px per frame at 60fps
+    let last = 0;
+    const tick = (now) => {
+      const dt = Math.min(3, last ? (now - last) / 16.667 : 1);
+      last = now;
+      const dx = targetX - x;
+      const dy = targetY - y;
+      const dist = Math.hypot(dx, dy);
+      const step = SPEED * dt;
+      if (dist > step) {
+        x += (dx / dist) * step;
+        y += (dy / dist) * step;
+        place();
+        const left = dx < 0;
+        if (Math.abs(dx) > 4 && left !== facingLeft) {
+          facingLeft = left;
+          roamer.classList.toggle('is-facing-left', left);
+        }
+        raf = requestAnimationFrame(tick);
+      } else {
+        x = targetX;
+        y = targetY;
+        place();
+        raf = 0;
+        last = 0;
+        setSpriteState('idle');
+        // Rest a moment before wandering off again.
+        const rest = 1800 + Math.random() * 2600;
+        nextTimer = window.setTimeout(wander, rest);
+      }
+    };
+
+    const wander = () => {
+      if (document.hidden || !bubble.hidden) {
+        // Hold still while the panel is open or the tab is hidden; check again shortly.
+        nextTimer = window.setTimeout(wander, 1500);
+        return;
+      }
+      clearTimers();
+      pickTarget();
+      setSpriteState('running');
+      last = 0;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
     setSpriteState('idle');
-    if (finePointer && !reduceMotion) {
-      roamer.style.left = `${Math.max(12, lastX)}px`;
-      roamer.style.top = `${Math.max(90, lastY)}px`;
-
-      document.addEventListener('pointermove', (event) => {
-        if (event.pointerType === 'touch') return;
-        pointerSeen = true;
-        if (stopTimer) window.clearTimeout(stopTimer);
-        if (waveTimer) window.clearTimeout(waveTimer);
-
-        const rect = roamer.getBoundingClientRect();
-        // Stay a little above and to the side of the pointer, without sitting directly on it.
-        const maxX = Math.max(8, window.innerWidth - rect.width - 8);
-        const maxY = Math.max(80, window.innerHeight - rect.height - 8);
-        const targetX = Math.min(maxX, Math.max(8, event.clientX - rect.width * 0.58));
-        const targetY = Math.min(maxY, Math.max(80, event.clientY - rect.height * 0.78));
-        roamer.classList.toggle('is-facing-left', targetX < lastX);
-        lastX = targetX;
-        lastY = targetY;
-        roamer.style.left = `${targetX}px`;
-        roamer.style.top = `${targetY}px`;
-        setSpriteState('running');
-
-        stopTimer = window.setTimeout(() => {
-          setSpriteState('idle');
-          // A short friendly wave after Yami comes to a stop.
-          waveTimer = window.setTimeout(() => setSpriteState('waving'), 180);
-          window.setTimeout(() => {
-            if (sprite && sprite.classList.contains('is-waving')) setSpriteState('idle');
-          }, 1450);
-        }, 240);
-      }, { passive: true });
-    }
+    const b0 = bounds();
+    x = targetX = Math.min(b0.maxX, Math.max(b0.minX, x));
+    y = targetY = Math.min(b0.maxY, Math.max(b0.minY, y));
+    place();
+    if (!reduceMotion) nextTimer = window.setTimeout(wander, 1200);
 
     roamer.addEventListener('click', () => setOpen(bubble.hidden));
     window.addEventListener('resize', () => {
-      const maxX = Math.max(8, window.innerWidth - roamer.offsetWidth - 8);
-      const maxY = Math.max(80, window.innerHeight - roamer.offsetHeight - 8);
-      const x = Math.min(maxX, Math.max(8, parseFloat(roamer.style.left || '40')));
-      const y = Math.min(maxY, Math.max(80, parseFloat(roamer.style.top || '120')));
-      roamer.style.left = `${x}px`;
-      roamer.style.top = `${y}px`;
+      const b = bounds();
+      x = targetX = Math.min(b.maxX, Math.max(b.minX, x));
+      y = targetY = Math.min(b.maxY, Math.max(b.minY, y));
+      place();
     });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        if (stopTimer) window.clearTimeout(stopTimer);
-        if (waveTimer) window.clearTimeout(waveTimer);
+        clearTimers();
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
         setSpriteState('idle');
+        if (!reduceMotion) nextTimer = window.setTimeout(wander, 1500);
       }
     });
   }
